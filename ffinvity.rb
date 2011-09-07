@@ -43,15 +43,24 @@ def event_already_transmitted?(string)
   already_transmitted
 end
 
+def write_event_hash(hash)
+  File.open('/home/dm/projects/ffinvity/already_sent_events', 'a') do |file|
+    file << "#{hash}\n"
+  end
+end
+
 def check_difference(date)
   (date.to_date - Time.now.strftime('%d.%m.%Y').to_date).to_i
 end
 
 scrape_events.each do |event|
-  p event
-  puts event_already_transmitted?(event[:hash].to_s)
-
-  if (difference = check_difference(event[:date])) <= 2 and difference > 0
-    puts difference
+  
+  if not event_already_transmitted?(event[:hash].to_s)
+    if (difference = check_difference(event[:date])) <= 2 and difference > 0
+      p event
+      puts difference
+      write_event_hash(event[:hash])      
+    end
   end
+  true
 end
