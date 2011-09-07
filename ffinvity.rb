@@ -1,8 +1,10 @@
 #!/usr/lib/env ruby
-# encodung: utf-8
+# encoding: utf-8
 
 require 'mechanize'
 require 'active_support/core_ext'
+require 'net/smtp'
+require 'rainbow'
 
 def generate_hash(string)
   Digest::SHA1.hexdigest(string)
@@ -53,13 +55,48 @@ def check_difference(date)
   (date.to_date - Time.now.strftime('%d.%m.%Y').to_date).to_i
 end
 
+def send_email(event)
+  email = {}
+  email[:server]      = 'localhost'
+  email[:from]        = 'invity@kbu.freifunk.net'
+  email[:from_alias]  = 'Invity - Invitation Bot'
+  email[:subject]     = "Nächstes FF-KBU Treffen: #{event[:date]}"
+  email[:to]          = 'dm@3st.be'
+
+  email[:msg] = <<END_OF_MESSAGE
+From: #{email[:from_alias]} <#{email[:from]}>
+To: <#{email[:to]}>
+Subject: #{email[:subject]}
+
+Einladung
+#########
+
+Das nächste Freifunk Köln, Bonn und Umgebung Treffen findet statt am
+
+#{event[:date]}
+um
+#{event[:time]}
+im
+#{event[:location]}
+
+Auf zahlreiches erscheinen wird gebeten :)
+END_OF_MESSAGE
+
+  Net::SMTP.start(email[:server]) do |smtp|
+    smtp.send_message email[:msg], email[:from], email[:to]
+  end
+end
+
 scrape_events.each do |event|
   
   if not event_already_transmitted?(event[:hash].to_s)
     if (difference = check_difference(event[:date])) <= 2 and difference > 0
       p event
-      puts difference
-      write_event_hash(event[:hash])      
+      puts "difference".color(:yellow)
+      if send_email(event)
+        puts "E-Mail send successfull".color(:green)
+        write_event_hash(event[:hash])      
+      end
     end
   end
   true
