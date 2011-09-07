@@ -3,7 +3,7 @@
 =begin
 Copyright Daniel Meißner <dm@3st.be>, 2011
 
-This file is part of Invity to send email notifications to upcoming Freifunk events.
+This file is part of Invity to send email notifications of upcoming Freifunk events.
 
 This script is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
