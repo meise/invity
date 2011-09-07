@@ -63,7 +63,7 @@ def event_already_transmitted?(string)
    already_transmitted = false
    # TODO: Handle exeption if file not exists
    # TODO: Fix static path
-   File.new('/home/invity/ffinvity/already_sent_events', 'r').each_line do |line|
+   File.new('/home/invity/invity/already_sent_events', 'r').each_line do |line|
     line = line.chomp # removed tailing line separator
     
     if line.eql?(string)
@@ -77,7 +77,7 @@ end
 def write_event_hash(hash)
   # writes a event hash into a file
   # TODO: Remove duplicated static path
-  File.open('/home/invity/ffinvity/already_sent_events', 'a') do |file|
+  File.open('/home/invity/invity/already_sent_events', 'a') do |file|
     file << "#{hash}\n"
   end
 end
@@ -93,7 +93,7 @@ def send_email(event)
   email[:from]        = 'invity@kbu.freifunk.net'
   email[:from_alias]  = 'Invity - Invitation Bot'
   email[:subject]     = "Nächstes Treffen: #{event[:date]}"
-  email[:to]          = 'dm@3st.be'
+  email[:to]          = 'yourmail@address.net'
 
   link_index, link_with_index = '', ''
   event[:links].each_with_index{  |link,index| link_index += "[#{index+1}]"; link_with_index += "[#{index+1}] #{link}\n" }
@@ -113,7 +113,7 @@ um #{event[:time]}
 im #{event[:location]} #{link_index}
 
 #{link_with_index}
-Um zahlreiches erscheinen wird gebeten :)
+Um zahlreiches Erscheinen wird gebeten :)
 END_OF_MESSAGE
 
   Net::SMTP.start(email[:server]) do |smtp|
