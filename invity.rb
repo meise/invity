@@ -49,7 +49,13 @@ def scrape_events
     treffen.search("./a/@href").each do |link|
       meeting[:links] << link.to_s
     end
-
+    
+    puts meeting[:date]
+    puts meeting[:time]
+    puts meeting[:location]
+    puts meeting[:hash]
+    puts meeting[:links]
+    puts
     upcoming_meetings << meeting
   end
 
@@ -128,7 +134,7 @@ scrape_events.each do |event|
 
       # TODO: Add debugging information 
       if send_email(event)
-        write_event_hash(event[:hash])      
+#        write_event_hash(event[:hash])      
       end
     end
   end
