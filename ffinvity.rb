@@ -2,6 +2,7 @@
 # encodung: utf-8
 
 require 'mechanize'
+require 'active_support/core_ext'
 
 def generate_hash(string)
   Digest::SHA1.hexdigest(string)
@@ -17,10 +18,12 @@ def scrape_events
   
   page.search('//*[@id="regelmaessig"]/ul/li').each do |treffen|
     meeting = {}
-    meeting[:date] = /(\d\d).(\d\d).(\d\d\d\d)/.match(treffen.text).to_s
-    meeting[:time] = /(\d\d|\d\d:\d\d)\sUhr/.match(treffen.text).to_s
-    meeting[:location] = /im.*(um|ab)/.match(treffen.text).to_s.gsub(/um|ab/, "").gsub(/im/, "").gsub(/^\s/, "").gsub(/\s$/, "")
+
+    meeting[:date] = /(\d\d).(\d\d).(\d\d\d\d)/.match(treffen.text).to_s # grep date with pattern
+    meeting[:time] = /(\d\d|\d\d:\d\d)\sUhr/.match(treffen.text).to_s # grep time with pattern TODO: that should be fixed with a better general purpose pattern
+    meeting[:location] = /im.*(um|ab)/.match(treffen.text).to_s.gsub(/um|ab/, "").gsub(/im/, "").gsub(/^\s/, "").gsub(/\s$/, "") # grep location with pattern TODO: that should be fixed with a better general purpose pattern
     meeting[:hash] = generate_hash(treffen.text)
+
     upcomming_meetings << meeting
   end
 
@@ -40,7 +43,15 @@ def event_already_transmitted?(string)
   already_transmitted
 end
 
+def check_difference(date)
+  (date.to_date - Time.now.strftime('%d.%m.%Y').to_date).to_i
+end
+
 scrape_events.each do |event|
   p event
   puts event_already_transmitted?(event[:hash].to_s)
+
+  if (difference = check_difference(event[:date])) <= 2 and difference > 0
+    puts difference
+  end
 end
