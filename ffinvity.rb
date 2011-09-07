@@ -1,5 +1,7 @@
 #!/usr/lib/env ruby
-#encoding: utf-8
+# encoding: utf-8
+
+
 
 require 'mechanize'
 require 'active_support/core_ext'
@@ -38,8 +40,12 @@ def scrape_events
 end
 
 def event_already_transmitted?(string)
-   already_transmitted = false
+   # this fuction is to verify, that a notification for a event is not send already
+   # fuction returns true if a event notification is already send
 
+   already_transmitted = false
+   # TODO: Handle exeption if file not exists
+   # TODO: Fix static path
    File.new('/home/invity/ffinvity/already_sent_events', 'r').each_line do |line|
     line = line.chomp # removed tailing line separator
     
@@ -47,16 +53,20 @@ def event_already_transmitted?(string)
       already_transmitted = true
     end
   end
+
   already_transmitted
 end
 
 def write_event_hash(hash)
+  # writes a event hash into a file
+  # TODO: Remove duplicated static path
   File.open('/home/invity/ffinvity/already_sent_events', 'a') do |file|
     file << "#{hash}\n"
   end
 end
 
 def check_difference(date)
+  # returns the difference between now and the upcomming event
   (date.to_date - Time.now.strftime('%d.%m.%Y').to_date).to_i
 end
 
@@ -97,13 +107,13 @@ end
 scrape_events.each do |event|
   if not event_already_transmitted?(event[:hash].to_s)
     if (difference = check_difference(event[:date])) <= 3 and difference > 0
-      p event
-      puts "difference".color(:yellow)
-  
+
+      # TODO: Add debugging information 
       if send_email(event)
         write_event_hash(event[:hash])      
       end
     end
   end
+
   true
 end
