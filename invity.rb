@@ -50,12 +50,6 @@ def scrape_events
       meeting[:links] << link.to_s
     end
     
-    puts meeting[:date]
-    puts meeting[:time]
-    puts meeting[:location]
-    puts meeting[:hash]
-    puts meeting[:links]
-    puts
     upcoming_meetings << meeting
   end
 
