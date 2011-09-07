@@ -90,7 +90,7 @@ end
 def send_email(event)
   email = {}
   email[:server]      = 'localhost'
-  email[:from]        = 'invity@kbu.freifunk.net'
+  email[:from]        = 'invity@yourdomain.net'
   email[:from_alias]  = 'Invity - Invitation Bot'
   email[:subject]     = "Nächstes Treffen: #{event[:date]}"
   email[:to]          = 'yourmail@address.net'
@@ -102,6 +102,7 @@ def send_email(event)
 From: #{email[:from_alias]} <#{email[:from]}>
 To: <#{email[:to]}>
 Subject: #{email[:subject]}
+User-Agent: Invity/0.0.1 (https://github.com/meise/invity)
 
 Einladung
 #########
