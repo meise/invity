@@ -35,7 +35,7 @@ def scrape_events
   agent.user_agent = "Invity/0.0.1 (https://github.com/meise/invity)" # TODO: Should be fixed with a real version
   page = agent.get('https://kbu.freifunk.net/index.php/Hauptseite')
   
-  upcomming_meetings = []
+  upcoming_meetings = []
   
   page.search('//*[@id="regelmaessig"]/ul/li').each do |treffen|
     meeting = {}
@@ -50,10 +50,10 @@ def scrape_events
       meeting[:links] << link.to_s
     end
 
-    upcomming_meetings << meeting
+    upcoming_meetings << meeting
   end
 
-  upcomming_meetings
+  upcoming_meetings
 end
 
 def event_already_transmitted?(string)
