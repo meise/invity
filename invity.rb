@@ -32,6 +32,7 @@ def scrape_events
   date_now = Time.now.strftime('%d.%m.%Y')
   
   agent = Mechanize.new
+  agent.user_agent = "Invity/0.0.1 (https://github.com/meise/invity)" # TODO: Should be fixed with a real version
   page = agent.get('https://kbu.freifunk.net/index.php/Hauptseite')
   
   upcomming_meetings = []
