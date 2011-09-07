@@ -1,5 +1,5 @@
 #!/usr/lib/env ruby
-# encoding: utf-8
+#encoding: utf-8
 
 require 'mechanize'
 require 'active_support/core_ext'
@@ -25,6 +25,11 @@ def scrape_events
     meeting[:time] = /(\d\d|\d\d:\d\d)\sUhr/.match(treffen.text).to_s # grep time with pattern TODO: that should be fixed with a better general purpose pattern
     meeting[:location] = /im.*(um|ab)/.match(treffen.text).to_s.gsub(/um|ab/, "").gsub(/im/, "").gsub(/^\s/, "").gsub(/\s$/, "") # grep location with pattern TODO: that should be fixed with a better general purpose pattern
     meeting[:hash] = generate_hash(treffen.text)
+    
+    meeting[:links] = []
+    treffen.search("./a/@href").each do |link|
+      meeting[:links] << link.to_s
+    end
 
     upcomming_meetings << meeting
   end
@@ -35,7 +40,7 @@ end
 def event_already_transmitted?(string)
    already_transmitted = false
 
-   File.new('/home/dm/projects/ffinvity/already_sent_events', 'r').each_line do |line|
+   File.new('/home/invity/ffinvity/already_sent_events', 'r').each_line do |line|
     line = line.chomp # removed tailing line separator
     
     if line.eql?(string)
@@ -46,7 +51,7 @@ def event_already_transmitted?(string)
 end
 
 def write_event_hash(hash)
-  File.open('/home/dm/projects/ffinvity/already_sent_events', 'a') do |file|
+  File.open('/home/invity/ffinvity/already_sent_events', 'a') do |file|
     file << "#{hash}\n"
   end
 end
@@ -60,8 +65,11 @@ def send_email(event)
   email[:server]      = 'localhost'
   email[:from]        = 'invity@kbu.freifunk.net'
   email[:from_alias]  = 'Invity - Invitation Bot'
-  email[:subject]     = "Nächstes FF-KBU Treffen: #{event[:date]}"
+  email[:subject]     = "Nächstes Treffen: #{event[:date]}"
   email[:to]          = 'dm@3st.be'
+
+  link_index, link_with_index = '', ''
+  event[:links].each_with_index{  |link,index| link_index += "[#{index+1}]"; link_with_index += "[#{index+1}] #{link}\n" }
 
   email[:msg] = <<END_OF_MESSAGE
 From: #{email[:from_alias]} <#{email[:from]}>
@@ -71,15 +79,14 @@ Subject: #{email[:subject]}
 Einladung
 #########
 
-Das nächste Freifunk Köln, Bonn und Umgebung Treffen findet statt am
+Das nächste Freifunk Köln, Bonn und Umgebung Treffen findet statt
 
-#{event[:date]}
-um
-#{event[:time]}
-im
-#{event[:location]}
+am #{event[:date]}
+um #{event[:time]}
+im #{event[:location]} #{link_index}
 
-Auf zahlreiches erscheinen wird gebeten :)
+#{link_with_index}
+Um zahlreiches erscheinen wird gebeten :)
 END_OF_MESSAGE
 
   Net::SMTP.start(email[:server]) do |smtp|
@@ -88,13 +95,12 @@ END_OF_MESSAGE
 end
 
 scrape_events.each do |event|
-  
   if not event_already_transmitted?(event[:hash].to_s)
-    if (difference = check_difference(event[:date])) <= 2 and difference > 0
+    if (difference = check_difference(event[:date])) <= 3 and difference > 0
       p event
       puts "difference".color(:yellow)
+  
       if send_email(event)
-        puts "E-Mail send successfull".color(:green)
         write_event_hash(event[:hash])      
       end
     end
