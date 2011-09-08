@@ -23,6 +23,7 @@ require 'mechanize'
 require 'active_support/core_ext'
 require 'net/smtp'
 require 'rainbow'
+require 'log4r'
 
 def generate_hash(string)
   Digest::SHA1.hexdigest(string)
@@ -63,7 +64,7 @@ def event_already_transmitted?(string)
    already_transmitted = false
    # TODO: Handle exeption if file not exists
    # TODO: Fix static path
-   File.new('/home/invity/invity/already_sent_events', 'r').each_line do |line|
+   File.new('./already_sent_events', 'r').each_line do |line|
     line = line.chomp # removed tailing line separator
     
     if line.eql?(string)
@@ -77,7 +78,7 @@ end
 def write_event_hash(hash)
   # writes a event hash into a file
   # TODO: Remove duplicated static path
-  File.open('/home/invity/invity/already_sent_events', 'a') do |file|
+  File.open('./already_sent_events', 'a') do |file|
     file << "#{hash}\n"
   end
 end
@@ -102,7 +103,7 @@ def send_email(event)
 From: #{email[:from_alias]} <#{email[:from]}>
 To: <#{email[:to]}>
 Subject: #{email[:subject]}
-User-Agent: Invity/0.0.1 (https://github.com/meise/invity)
+User-Agent: Invity/#{Invity::VERSION} (https://github.com/meise/invity)
 
 Einladung
 #########
@@ -118,7 +119,11 @@ Um zahlreiches Erscheinen wird gebeten :)
 END_OF_MESSAGE
 
   Net::SMTP.start(email[:server]) do |smtp|
-    smtp.send_message email[:msg], email[:from], email[:to]
+#   smtp.send_message email[:msg].to_iso, email[:from], email[:to]
+    puts "E-Mail:".color(:green)
+    puts email[:msg].encode('iso-8859-1').color(:yellow)
+    puts
+    puts email[:msg].color(:blue)
   end
 end
 
@@ -130,6 +135,10 @@ scrape_events.each do |event|
       if send_email(event)
 #        write_event_hash(event[:hash])      
       end
+    else
+      puts "No email sent:".color(:red)
+      puts event.to_s
+      send_email(event)
     end
   end
 
